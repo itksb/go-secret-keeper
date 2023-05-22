@@ -26,20 +26,21 @@ func (j *JwtTokenProvider) GenerateToken(
 	ctx context.Context,
 	userID string,
 ) (string, error) {
-	// Create a new token object, specifying signing method and the claims
-	// you would like it to contain.
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userID": userID,
-	})
-	token.Claims.(jwt.MapClaims)["exp"] = j.nowFunc().Add(time.Hour * 24).Unix()
-
-	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString(j.tokenKey)
+	// Create a new token with the standard claims
+	token := jwt.New(jwt.SigningMethodHS256)
+	// Set the claims for the token
+	claims := token.Claims.(jwt.MapClaims)
+	claims["userID"] = userID
+	claims["exp"] = j.nowFunc().Add(time.Hour * 24).Unix()
+	// Sign the token with a secret key
+	// Replace "your-secret-key" with your actual secret key
+	tokenString, err := token.SignedString([]byte(j.tokenKey))
 	if err != nil {
 		return "", err
 	}
 
 	return tokenString, nil
+
 }
 
 // ValidateToken - Validate token
