@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/itksb/go-secret-keeper/internal/server/auth"
 	"github.com/itksb/go-secret-keeper/internal/server/db"
 	"github.com/itksb/go-secret-keeper/migrate"
 	"github.com/itksb/go-secret-keeper/pkg/contract"
@@ -23,6 +24,7 @@ type ServerApp struct {
 	db          *sqlx.DB
 	appMigrator migrate.IAppMigrator
 	deferredOps []func() error
+	auth        contract.IAuthService
 }
 
 // NewServerApp - constructor
@@ -71,6 +73,13 @@ func (s *ServerApp) Run() error {
 		s.l.Infof("closing db connection")
 		return s.db.Close()
 	})
+
+	tokenProvider := auth.NewJwtTokenProvider([]byte(s.cfg.TokenKey), time.Now)
+	repo := auth.NewAuthRepository(s.db, s.l)
+	passHasher := &auth.PasswordService{}
+	authService := auth.NewAuthService(tokenProvider, repo, passHasher)
+
+	s.auth = authService
 
 	return nil
 }

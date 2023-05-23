@@ -20,7 +20,7 @@ func TestJwtTokenProvider_ValidateToken(t *testing.T) {
 		t.Errorf("Error generating valid token: %v", err)
 	}
 
-	expectedToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIwNTEzMDg4MDAsInVzZXJJRCI6IjEyMzQ1In0.MXewQErNWLXnD74ckykFjeauqtNi7uTIasjTFXp6h1w"
+	expectedToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIwNTEzMDg4MDAsInVpZCI6IjEyMzQ1In0.JJeEVUmuPddmZgG0yredFphjdcjrHyCmwyiyRm94UUo"
 	require.Equal(t, expectedToken, validToken, "The two tokens should be the same.")
 
 	// Test validation with valid token
@@ -37,7 +37,7 @@ func TestJwtTokenProvider_ValidateToken(t *testing.T) {
 // TestJwtTokenProvider_GenerateToken - Test for GenerateToken
 func TestJwtTokenProvider_GenerateToken(t *testing.T) {
 	secretKey := []byte("secretKey")
-	expectedTokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIwNTEzMDg4MDAsInVzZXJJRCI6InF3ZXJ0eSJ9.FU14rf8drHsuen4E2rPMCEaxvFjnLyvffq5-Hfgfgow"
+	expectedTokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIwNTEzMDg4MDAsInVpZCI6InF3ZXJ0eSJ9.atqqmr4qUe2djJuxcRN7bSBTadMvnE1j-J4EQ8IaLJ0"
 	userID := "qwerty"
 
 	tokenProvider := NewJwtTokenProvider(secretKey, func() time.Time {

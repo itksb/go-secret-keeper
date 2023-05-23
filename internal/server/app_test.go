@@ -2,7 +2,9 @@ package server
 
 import (
 	"errors"
+	"github.com/itksb/go-secret-keeper/migrate"
 	"github.com/stretchr/testify/require"
+	"io/fs"
 	"testing"
 )
 
@@ -13,7 +15,7 @@ func TestNewServerAppDebugMode(t *testing.T) {
 	}
 
 	// Call the function being tested
-	app := NewServerApp(cfg)
+	app := NewServerApp(cfg, migrate.AppMigratorFunc(func(dsn string, path fs.FS) error { return nil }))
 
 	// Check if the returned app has the expected configuration
 	if app.cfg != cfg {
@@ -26,7 +28,7 @@ func TestNewServerAppDebugMode(t *testing.T) {
 func TestServerApp_Stop(t *testing.T) {
 	// Prepare test data
 	cfg := Config{}
-	app := NewServerApp(cfg)
+	app := NewServerApp(cfg, migrate.AppMigratorFunc(func(dsn string, path fs.FS) error { return nil }))
 
 	// Mock deferred operations
 	var calledOps []bool
@@ -63,7 +65,7 @@ func TestServerApp_Stop(t *testing.T) {
 func TestServerApp_Stop_Error(t *testing.T) {
 	// Prepare test data
 	cfg := Config{}
-	app := NewServerApp(cfg)
+	app := NewServerApp(cfg, migrate.AppMigratorFunc(func(dsn string, path fs.FS) error { return nil }))
 
 	// Mock a deferred operation that returns an error
 	errMsg := "deferred operation error"
@@ -81,4 +83,11 @@ func TestServerApp_Stop_Error(t *testing.T) {
 	} else if err.Error() != errMsg {
 		t.Errorf("Expected error message '%s', but got '%s'", errMsg, err.Error())
 	}
+}
+
+func TestServerApp_MigrateError(t *testing.T) {
+	cfg := Config{}
+	app := NewServerApp(cfg, migrate.AppMigratorFunc(func(dsn string, path fs.FS) error { return errors.New("migrator errror") }))
+	err := app.Run()
+	require.Error(t, err, "migrator errror")
 }

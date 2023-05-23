@@ -30,7 +30,7 @@ func (j *JwtTokenProvider) GenerateToken(
 	token := jwt.New(jwt.SigningMethodHS256)
 	// Set the claims for the token
 	claims := token.Claims.(jwt.MapClaims)
-	claims["userID"] = userID
+	claims[string(FieldID)] = userID
 	claims["exp"] = j.nowFunc().Add(time.Hour * 24).Unix()
 	// Sign the token with a secret key
 	// Replace "your-secret-key" with your actual secret key
@@ -63,7 +63,7 @@ func (j *JwtTokenProvider) ValidateToken(
 
 	// Check if the token is valid
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		if userID, ok := claims["userID"].(string); ok {
+		if userID, ok := claims[string(FieldID)].(string); ok {
 			return userID, nil
 		}
 	}
