@@ -1,6 +1,9 @@
 package contract
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 // IAccount - Account interface
 type IAccount interface {
@@ -21,8 +24,15 @@ type IAuthService interface {
 	SignIn(ctx context.Context, login, password string) (IAccount, error)
 }
 
+var ErrDuplicateAccount = errors.New("duplicate account")
+
 // IAuthRepository - Auth repository interface
 type IAuthRepository interface {
 	Create(ctx context.Context, login, password string) (IAccount, error)
 	Find(ctx context.Context, login, password string) (IAccount, error)
+}
+
+type IPassHasher interface {
+	HashPassword(password []byte) (string, error)
+	ComparePassword(hashedPwd string, plainPwd []byte) (bool, error)
 }

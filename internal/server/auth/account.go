@@ -11,17 +11,17 @@ type Account struct {
 	PasswordHash string
 }
 
-// Account - GetID
+// GetID get account id
 func (a *Account) GetID() string {
 	return a.ID
 }
 
-// Account - GetLogin
+// GetLogin get account login
 func (a *Account) GetLogin() string {
 	return a.Login
 }
 
-// Account - GetPasswordHash
+// SetPasswordHash set password hash
 func (a *Account) SetPasswordHash(h string) {
 	a.PasswordHash = h
 }
