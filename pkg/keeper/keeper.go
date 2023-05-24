@@ -1,5 +1,6 @@
-package secret
+package keeper
 
+/**
 type UserSecretItemTypeID int
 
 // взять любые два типа.
@@ -26,3 +27,5 @@ type IUserSecretItem interface {
 // get
 // set
 // delete
+
+**/
