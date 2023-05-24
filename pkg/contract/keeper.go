@@ -44,7 +44,7 @@ type IKeeper interface {
 // IKeeperRepository - keeper repository interface
 type IKeeperRepository interface {
 	// SaveSecret - save secret for the user
-	SaveSecret(ctx context.Context, userID UserID, secret UserSecretData) error
+	SaveSecret(ctx context.Context, userID UserID, secret IUserSecretItem) error
 	// GetAllSecrets - get all secrets for user
 	GetAllSecrets(ctx context.Context, userID UserID) ([]IUserSecretItem, error)
 	// Delete - delete secret for the user
