@@ -32,3 +32,12 @@ func (*BaseSecretItem) GetType() contract.UserSecretType {
 func (b *BaseSecretItem) GetData() contract.UserSecretData {
 	return b.data
 }
+
+func (b *BaseSecretItem) DTO() contract.UserSecretItemDTO {
+	return contract.UserSecretItemDTO{
+		ID:            b.id,
+		Type:          b.GetType(),
+		EncryptedData: b.data,
+		EncryptedMeta: []byte(b.meta),
+	}
+}

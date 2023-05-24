@@ -32,6 +32,15 @@ type IUserSecretItem interface {
 	GetType() UserSecretType
 	GetData() UserSecretData
 	GetMeta() UserSecretMeta
+	DTO() UserSecretItemDTO
+}
+
+// UserSecretItemDTO - user secret item type for transmitting around network
+type UserSecretItemDTO struct {
+	ID            SecretID
+	Type          UserSecretType
+	EncryptedData []byte
+	EncryptedMeta []byte
 }
 
 // IKeeper - keeper interface

@@ -7,17 +7,5 @@ type IClientKeeper interface {
 	contract.IKeeper
 }
 
-type ISecretEncryptor interface {
-	Encrypt([]byte) ([]byte, error)
-}
-
-type ISecretDecryptor interface {
-	Decrypt([]byte) ([]byte, error)
-}
-
-type ISecretCrypto interface {
-	ISecretEncryptor
-	ISecretDecryptor
-}
-
+// GetPrivateKeyFunc - get private key function
 type GetPrivateKeyFunc func() ([]byte, error)
