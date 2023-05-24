@@ -18,9 +18,12 @@ type (
 type UserSecretType string
 
 const (
-	UserSecretTypeBase     UserSecretType = "base"
+	// UserSecretTypeBase - base secret type
+	UserSecretTypeBase UserSecretType = "base"
+	// UserSecretTypeTextData - text data secret type
 	UserSecretTypeTextData UserSecretType = "textdata"
-	UserSecretLoginPasswd  UserSecretType = "loginpasswd"
+	// UserSecretLoginPasswd - login password secret type
+	UserSecretLoginPasswd UserSecretType = "loginpasswd"
 )
 
 // IUserSecretItem - user secret interface
