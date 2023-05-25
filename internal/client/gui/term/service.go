@@ -2,19 +2,23 @@ package term
 
 import (
 	"github.com/chzyer/readline"
+	"github.com/itksb/go-secret-keeper/internal/client/session"
 	"github.com/itksb/go-secret-keeper/pkg/contract"
 )
 
 type TerminalService struct {
-	l contract.IApplicationLogger
+	l       contract.IApplicationLogger
+	session session.ISession
 }
 
 // NewTerminalService - create new terminal service
 func NewTerminalService(
 	l contract.IApplicationLogger,
+	session session.ISession,
 ) *TerminalService {
 	return &TerminalService{
-		l: l,
+		l:       l,
+		session: session,
 	}
 }
 

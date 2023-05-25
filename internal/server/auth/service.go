@@ -32,12 +32,17 @@ func (a *AuthService) SignUp(
 	ctx context.Context,
 	login,
 	password string,
-) (contract.IAccount, error) {
+) (contract.IAccount, string, error) {
 	passwordHash, err := a.passHasher.HashPassword([]byte(password))
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return a.repo.Create(ctx, login, passwordHash)
+	acc, err := a.repo.Create(ctx, login, passwordHash)
+	if err != nil {
+		return nil, "", err
+	}
+	token, err := a.tokenProvider.GenerateToken(ctx, acc.GetID())
+	return acc, token, err
 }
 
 // SignIn - sign in existing user
@@ -45,11 +50,17 @@ func (a *AuthService) SignIn(
 	ctx context.Context,
 	login,
 	password string,
-) (contract.IAccount, error) {
+) (contract.IAccount, string, error) {
 	passwordHash, err := a.passHasher.HashPassword([]byte(password))
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return a.repo.Find(ctx, login, passwordHash)
+	acc, err := a.repo.Find(ctx, login, passwordHash)
+	if err != nil {
+		return nil, "", err
+	}
+	token, err := a.tokenProvider.GenerateToken(ctx, acc.GetID())
+
+	return acc, token, err
 }

@@ -20,8 +20,8 @@ type ITokenProvider interface {
 
 // IAuthService - Auth service interface
 type IAuthService interface {
-	SignUp(ctx context.Context, login, password string) (IAccount, error)
-	SignIn(ctx context.Context, login, password string) (IAccount, error)
+	SignUp(ctx context.Context, login, password string) (acc IAccount, token string, err error)
+	SignIn(ctx context.Context, login, password string) (acc IAccount, token string, err error)
 }
 
 var ErrDuplicateAccount = errors.New("duplicate account")

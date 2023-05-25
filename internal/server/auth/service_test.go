@@ -30,7 +30,9 @@ func TestAuthService_SignIn(t *testing.T) {
 		PasswordHash: "hash",
 	}, nil)
 
-	account, err := authService.SignIn(
+	tok.EXPECT().GenerateToken(gomock.Any(), "testID").Return("token", nil)
+
+	account, tokenReceived, err := authService.SignIn(
 		context.Background(),
 		login,
 		password,
@@ -42,6 +44,13 @@ func TestAuthService_SignIn(t *testing.T) {
 		login,
 		account.GetLogin(),
 		"SignIn should find an account with the specified login, passwd",
+	)
+
+	assert.Equal(
+		t,
+		"token",
+		tokenReceived,
+		"SignIn should return a token",
 	)
 }
 
@@ -65,7 +74,9 @@ func TestAuthService_SignUp(t *testing.T) {
 		PasswordHash: "hash",
 	}, nil)
 
-	account, err := authService.SignUp(
+	tok.EXPECT().GenerateToken(gomock.Any(), "testID").Return("token", nil)
+
+	account, tokenReceived, err := authService.SignUp(
 		context.Background(),
 		login,
 		password,
@@ -77,6 +88,13 @@ func TestAuthService_SignUp(t *testing.T) {
 		login,
 		account.GetLogin(),
 		"SignUp should create an account with the specified login",
+	)
+
+	assert.Equal(
+		t,
+		"token",
+		tokenReceived,
+		"SignUp should return a token",
 	)
 }
 
