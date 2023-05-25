@@ -29,7 +29,7 @@ func (a *APIKeeper) SaveSecret(
 	ctx context.Context,
 	userID contract.UserID,
 	secret contract.IUserSecretItem,
-) error {
+) (contract.IUserSecretItem, error) {
 
 	var err error
 
@@ -37,13 +37,13 @@ func (a *APIKeeper) SaveSecret(
 	secretDTO.EncryptedData, err = a.crypto.Encrypt(secretDTO.EncryptedData)
 	if err != nil {
 		a.l.Errorf("failed to encrypt secret data for user %s: %s", userID, err)
-		return err
+		return nil, err
 	}
 
 	secretDTO.EncryptedMeta, err = a.crypto.Encrypt(secretDTO.EncryptedMeta)
 	if err != nil {
 		a.l.Errorf("failed to encrypt secret meta for user %s: %s", userID, err)
-		return err
+		return nil, err
 	}
 
 	panic("implement me - grpc call to server")

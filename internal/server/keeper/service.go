@@ -35,17 +35,17 @@ func (s *ServerKeeper) SaveSecret(
 	ctx context.Context,
 	userID contract.UserID,
 	secret contract.IUserSecretItem,
-) error {
+) (contract.IUserSecretItem, error) {
 
 	ctx2, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	err := s.repo.SaveSecret(ctx2, userID, secret)
+	secretSaved, err := s.repo.SaveSecret(ctx2, userID, secret)
 	if err != nil {
 		s.l.Errorf("failed to save secret for user %s: %s", userID, err)
-		return err
+		return nil, err
 	}
-	return nil
+	return secretSaved, nil
 }
 
 // GetAllSecrets - get all secrets for user

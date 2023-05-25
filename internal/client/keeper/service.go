@@ -30,17 +30,17 @@ func (c *ClientKeeper) SaveSecret(
 	ctx context.Context,
 	userID contract.UserID,
 	secret contract.IUserSecretItem,
-) error {
+) (contract.IUserSecretItem, error) {
 	// network request under the hood. So timeout is twice bigger than server keeper timeout
 	ctx2, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	err := c.api.SaveSecret(ctx2, userID, secret)
+	savedSecret, err := c.api.SaveSecret(ctx2, userID, secret)
 	if err != nil {
 		c.l.Errorf("failed to save secret for user %s: %s", userID, err)
-		return err
+		return nil, err
 	}
-	return nil
+	return savedSecret, nil
 }
 
 // GetAllSecrets - get all secrets for user
