@@ -67,5 +67,4 @@ func (p *LoginPasswdSecretItemPacker) Write(
 		return errors.New("invalid entity type")
 	}
 
-	return nil
 }

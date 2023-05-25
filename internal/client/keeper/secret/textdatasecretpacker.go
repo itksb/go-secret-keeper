@@ -44,5 +44,4 @@ func (p *TextDataSecretItemPacker) Write(text string) error {
 		return errors.New("invalid entity type")
 	}
 
-	return nil
 }

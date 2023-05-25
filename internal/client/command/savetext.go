@@ -24,7 +24,7 @@ type SaveTextCommand struct {
 	secretProcessFunc SecretItemProcessorFunc
 }
 
-// NewSaveSecretCommand - execute command
+// NewSaveTextCommand - execute command
 func NewSaveTextCommand(
 	l contract.IApplicationLogger,
 	keeper contract.IKeeper,
@@ -45,7 +45,7 @@ func NewSaveTextCommand(
 	}
 }
 
-// SaveSecretCommandFactory - create new save secret command factory
+// SaveTextCommandFactory - create new save secret command factory
 // using currying technic for dependency injection
 func SaveTextCommandFactory(
 	l contract.IApplicationLogger,
