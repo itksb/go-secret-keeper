@@ -20,9 +20,10 @@ var completer = readline.NewPrefixCompleter(
 
 // TerminalService - terminal service
 type TerminalService struct {
-	l              contract.IApplicationLogger
-	session        session.ISession
-	loginCmdFabric loginCmdFabric
+	l                 contract.IApplicationLogger
+	session           session.ISession
+	loginCmdFabric    loginCmdFabric
+	registerCmdFabric registerCmdFabric
 }
 
 type loginCmdFabric func(
@@ -31,16 +32,24 @@ type loginCmdFabric func(
 	password string,
 ) *command.LoginCommand
 
+type registerCmdFabric func(
+	session session.ISession,
+	login string,
+	password string,
+) *command.RegisterCommand
+
 // NewTerminalService - create new terminal service
 func NewTerminalService(
 	l contract.IApplicationLogger,
 	session session.ISession,
 	loginCmdFabric loginCmdFabric,
+	registerCmdFabric registerCmdFabric,
 ) *TerminalService {
 	return &TerminalService{
-		l:              l,
-		session:        session,
-		loginCmdFabric: loginCmdFabric,
+		l:                 l,
+		session:           session,
+		loginCmdFabric:    loginCmdFabric,
+		registerCmdFabric: registerCmdFabric,
 	}
 }
 
@@ -114,25 +123,51 @@ func (s *TerminalService) Start() error {
 
 		line = strings.TrimSpace(line)
 
+		var cmdErr error
+
 		switch {
 		case line == "login":
+			cmdErr = nil
 			rline.SetPrompt(createLoginPrompt("enter login fot the server"))
-			login, err := rline.Readline()
+			var login string
+			login, cmdErr = rline.Readline()
 			if err != nil {
-				rline.Write([]byte(fmt.Sprintf("error while reading login: %s \r\n", err.Error())))
+				rline.Write([]byte(fmt.Sprintf("error while reading login: %s \r\n", cmdErr.Error())))
 			}
 			rline.SetPrompt(nemoPrompt)
 			rline.Write([]byte(fmt.Sprintf("your login: %s \r\n", login)))
+			cmdErr = nil
 			var pswd []byte
-			pswd, err = rline.ReadPasswordWithConfig(setPasswordCfg)
-			if err != nil {
-				rline.Write([]byte(fmt.Sprintf("error while reading password: %s \r\n", err.Error())))
+			pswd, cmdErr = rline.ReadPasswordWithConfig(setPasswordCfg)
+			if cmdErr != nil {
+				rline.Write([]byte(fmt.Sprintf("error while reading password: %s \r\n", cmdErr.Error())))
 			}
-			rline.Write([]byte(fmt.Sprintf("your password: %s \r\n", string(pswd))))
 			loginCmd := s.loginCmdFabric(s.session, login, string(pswd))
-			err = loginCmd.Execute()
+			cmdErr = loginCmd.Execute()
+			if cmdErr != nil {
+				rline.Write([]byte(fmt.Sprintf("error while executing login command: %s \r\n", cmdErr.Error())))
+			}
+
+		case line == "register":
+			cmdErr = nil
+			rline.SetPrompt(createLoginPrompt("enter login to register on the server"))
+			var login string
+			login, cmdErr = rline.Readline()
 			if err != nil {
-				rline.Write([]byte(fmt.Sprintf("error while reading password: %s \r\n", err.Error())))
+				rline.Write([]byte(fmt.Sprintf("error while reading login: %s \r\n", cmdErr.Error())))
+			}
+			rline.SetPrompt(nemoPrompt)
+			rline.Write([]byte(fmt.Sprintf("your login: %s \r\n", login)))
+			cmdErr = nil
+			var pswd []byte
+			pswd, cmdErr = rline.ReadPasswordWithConfig(setPasswordCfg)
+			if cmdErr != nil {
+				rline.Write([]byte(fmt.Sprintf("error while executing register command: %s \r\n", cmdErr.Error())))
+			}
+			registerCmd := s.registerCmdFabric(s.session, login, string(pswd))
+			cmdErr = registerCmd.Execute()
+			if cmdErr != nil {
+				rline.Write([]byte(fmt.Sprintf("error while reading password: %s \r\n", cmdErr.Error())))
 			}
 
 		case line == "help":

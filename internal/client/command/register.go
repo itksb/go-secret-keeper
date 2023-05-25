@@ -36,6 +36,25 @@ func NewRegisterCommand(
 	}
 }
 
+// RegisterCmdAbstractFabric - abstract fabric for register command
+// using currying technic for dependency injection
+func RegisterCmdAbstractFabric(
+	auth contract.IAuthService,
+	l contract.IApplicationLogger,
+) func(
+	session session.ISession,
+	login string,
+	password string,
+) *RegisterCommand {
+	return func(
+		session session.ISession,
+		login string,
+		password string,
+	) *RegisterCommand {
+		return NewRegisterCommand(auth, l, session, login, password)
+	}
+}
+
 // Execute - execute command
 func (c *RegisterCommand) Execute() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

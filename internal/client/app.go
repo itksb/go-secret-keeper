@@ -58,6 +58,7 @@ func (c *ClientApp) Run() error {
 		c.l,
 		guiSession,
 		command.LoginCmdAbstractFabric(authService, c.l),
+		command.RegisterCmdAbstractFabric(authService, c.l),
 	)
 
 	return gui.Start()
