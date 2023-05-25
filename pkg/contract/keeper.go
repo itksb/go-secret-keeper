@@ -38,10 +38,10 @@ type IUserSecretItem interface {
 
 // UserSecretItemDTO - user secret item type for transmitting around network
 type UserSecretItemDTO struct {
-	ID            SecretID
-	Type          UserSecretType
-	EncryptedData []byte
-	EncryptedMeta []byte
+	ID            SecretID       `json:"id" db:"id"`
+	Type          UserSecretType `json:"type" db:"type"`
+	EncryptedData []byte         `json:"data" db:"data"`
+	EncryptedMeta []byte         `json:"meta" db:"meta"`
 }
 
 // IKeeper - keeper interface
