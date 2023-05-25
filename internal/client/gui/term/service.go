@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"github.com/chzyer/readline"
 	"github.com/itksb/go-secret-keeper/internal/client/command"
+	secret2 "github.com/itksb/go-secret-keeper/internal/client/keeper/secret"
 	"github.com/itksb/go-secret-keeper/internal/client/session"
 	"github.com/itksb/go-secret-keeper/pkg/contract"
+	"github.com/itksb/go-secret-keeper/pkg/keeper/secret"
 	"io"
 	"log"
 	"strconv"
@@ -14,16 +16,19 @@ import (
 
 var completer = readline.NewPrefixCompleter(
 	readline.PcItem("login"),
+	readline.PcItem("register"),
+	readline.PcItem("list"),
 	readline.PcItem("help"),
 	readline.PcItem("exit"),
 )
 
 // TerminalService - terminal service
 type TerminalService struct {
-	l                 contract.IApplicationLogger
-	session           session.ISession
-	loginCmdFabric    loginCmdFabric
-	registerCmdFabric registerCmdFabric
+	l                    contract.IApplicationLogger
+	session              session.ISession
+	loginCmdFabric       loginCmdFabric
+	registerCmdFabric    registerCmdFabric
+	listSecretsCmdFabric listSecretsCmdFabric
 }
 
 type loginCmdFabric func(
@@ -38,18 +43,25 @@ type registerCmdFabric func(
 	password string,
 ) *command.RegisterCommand
 
+type listSecretsCmdFabric func(
+	userID string,
+	processFunc command.SecretsProcessorFunc,
+) *command.ListSecretsCommand
+
 // NewTerminalService - create new terminal service
 func NewTerminalService(
 	l contract.IApplicationLogger,
 	session session.ISession,
 	loginCmdFabric loginCmdFabric,
 	registerCmdFabric registerCmdFabric,
+	listSecretsCmdFabric listSecretsCmdFabric,
 ) *TerminalService {
 	return &TerminalService{
-		l:                 l,
-		session:           session,
-		loginCmdFabric:    loginCmdFabric,
-		registerCmdFabric: registerCmdFabric,
+		l:                    l,
+		session:              session,
+		loginCmdFabric:       loginCmdFabric,
+		registerCmdFabric:    registerCmdFabric,
+		listSecretsCmdFabric: listSecretsCmdFabric,
 	}
 }
 
@@ -169,6 +181,32 @@ func (s *TerminalService) Start() error {
 			if cmdErr != nil {
 				rline.Write([]byte(fmt.Sprintf("error while reading password: %s \r\n", cmdErr.Error())))
 			}
+		case line == "list":
+			cmdErr = nil
+			acc := s.GetAccount()
+			if acc == nil {
+				continue
+			}
+			listSecretsCmd := s.listSecretsCmdFabric(
+				acc.GetID(),
+				func(secrets []contract.IUserSecretItem) error {
+					for _, sec := range secrets {
+						switch sec.GetType() {
+						case contract.UserSecretLoginPasswd:
+							s.renderUserSecretLoginPasswd(sec)
+						case contract.UserSecretTypeTextData:
+						default:
+							rline.Write([]byte(fmt.Sprintf("unknown secret type: %s \r\n", sec.GetType())))
+							continue
+						}
+					}
+					return nil
+				})
+
+			cmdErr = listSecretsCmd.Execute()
+			if cmdErr != nil {
+				rline.Write([]byte(fmt.Sprintf("error while executing list command: %s \r\n", cmdErr.Error())))
+			}
 
 		case line == "help":
 			usage(rline.Stderr())
@@ -205,4 +243,60 @@ func (s *TerminalService) GetLogin() string {
 	}
 
 	return acc.GetLogin()
+}
+
+func (s *TerminalService) GetAccount() contract.IAccount {
+	accRaw, err := s.session.GetValue(session.AccountKey)
+	if err != nil {
+		s.l.Errorf("error while getting account from session: %s", err.Error())
+		return nil
+	}
+	acc, ok := accRaw.(contract.IAccount)
+	if !ok {
+		s.l.Errorf("error while getting account from session: %s", err.Error())
+		return nil
+	}
+
+	return acc
+}
+
+func (s *TerminalService) renderUserSecretLoginPasswd(sec contract.IUserSecretItem) {
+	item, ok := sec.(*secret.LoginPasswdSecretItem)
+	if !ok {
+		s.l.Errorf("error while casting secret to LoginPasswdSecretItem")
+		return
+	}
+	packer := secret2.LoginPasswdSecretItemPacker{Entity: *item}
+	login, passwd, err := packer.Read()
+	if err != nil {
+		s.l.Errorf("error while reading secret: %s", err.Error())
+		return
+	}
+	fmt.Printf(
+		"id: %s \nlogin: %s \npassword: %s \nmeta: %s",
+		sec.GetID(),
+		login,
+		passwd,
+		sec.GetMeta(),
+	)
+}
+
+func (s *TerminalService) renderUserSecretTypeTextData(sec contract.IUserSecretItem) {
+	item, ok := sec.(*secret.TextDataSecretItem)
+	if !ok {
+		s.l.Errorf("error while casting secret to LoginPasswdSecretItem")
+		return
+	}
+	packer := secret2.TextDataSecretItemPacker{Entity: *item}
+	text, err := packer.Read()
+	if err != nil {
+		s.l.Errorf("error while reading secret: %s", err.Error())
+		return
+	}
+	fmt.Printf(
+		"id: %s \ntext: %s \nmeta: %s",
+		sec.GetID(),
+		text,
+		sec.GetMeta(),
+	)
 }

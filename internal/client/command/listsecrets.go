@@ -31,6 +31,23 @@ func NewListSecretsCommand(
 	}
 }
 
+// ListSecretsCmdAbstractFabric - abstract fabric for list secrets command
+// using currying technic for dependency injection
+func ListSecretsCmdAbstractFabric(
+	l contract.IApplicationLogger,
+	keeper contract.IKeeper,
+) func(
+	userID string,
+	processFunc SecretsProcessorFunc,
+) *ListSecretsCommand {
+	return func(
+		userID string,
+		processFunc SecretsProcessorFunc,
+	) *ListSecretsCommand {
+		return NewListSecretsCommand(l, keeper, userID, processFunc)
+	}
+}
+
 // Execute - execute command
 func (c *ListSecretsCommand) Execute() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

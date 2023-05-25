@@ -8,17 +8,19 @@ import (
 
 // Config - server config
 type Config struct {
-	GRPCAddr string `json:"grpc_address"` // gRPC server address
-	Config   string `json:"-"`            // config file path
-	Debug    bool   `json:"-"`            // is debug mode
+	GRPCAddr  string `json:"grpc_address"` // gRPC server address
+	Config    string `json:"-"`            // config file path
+	Debug     bool   `json:"-"`            // is debug mode
+	CryptoKey string `json:"crypto_key"`   // crypto key
 }
 
 // NewConfig - create new config
 func NewConfig() *Config {
 	return &Config{
-		GRPCAddr: "",
-		Config:   "",
-		Debug:    false,
+		GRPCAddr:  "",
+		Config:    "",
+		Debug:     false,
+		CryptoKey: "",
 	}
 }
 
@@ -26,6 +28,7 @@ func NewConfig() *Config {
 func (cfg *Config) UseFlags() {
 	grpcAddr := flag.String("g", cfg.GRPCAddr, "GRPC_ADDRESS")
 	configFile := flag.String("c", cfg.Config, "CONFIG")
+	cryptoKey := flag.String("k", cfg.CryptoKey, "CRYPTO_KEY")
 
 	flag.Parse()
 
@@ -34,6 +37,9 @@ func (cfg *Config) UseFlags() {
 	}
 	if *configFile != "" {
 		cfg.Config = *configFile
+	}
+	if *cryptoKey != "" {
+		cfg.CryptoKey = *cryptoKey
 	}
 
 }
@@ -69,6 +75,9 @@ func (cfg *Config) UseJsonConfigFile() (*Config, error) {
 func mergeConfigs(result, cfg2 *Config) *Config {
 	if result.GRPCAddr == "" {
 		result.GRPCAddr = cfg2.GRPCAddr
+	}
+	if result.CryptoKey == "" {
+		result.CryptoKey = cfg2.CryptoKey
 	}
 	if !result.Debug {
 		result.Debug = cfg2.Debug

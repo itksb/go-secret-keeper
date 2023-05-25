@@ -33,6 +33,7 @@ type IUserSecretItem interface {
 	GetData() UserSecretData
 	GetMeta() UserSecretMeta
 	DTO() UserSecretItemDTO
+	FromDTO(dto UserSecretItemDTO) (IUserSecretItem, error)
 }
 
 // UserSecretItemDTO - user secret item type for transmitting around network

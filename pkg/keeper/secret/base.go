@@ -33,6 +33,7 @@ func (b *BaseSecretItem) GetData() contract.UserSecretData {
 	return b.data
 }
 
+// DTO - convert to DTO
 func (b *BaseSecretItem) DTO() contract.UserSecretItemDTO {
 	return contract.UserSecretItemDTO{
 		ID:            b.id,
@@ -40,4 +41,14 @@ func (b *BaseSecretItem) DTO() contract.UserSecretItemDTO {
 		EncryptedData: b.data,
 		EncryptedMeta: []byte(b.meta),
 	}
+}
+
+// FromDTO - create from DTO
+func (b *BaseSecretItem) FromDTO(dto contract.UserSecretItemDTO) (contract.IUserSecretItem, error) {
+	return CreateSecretItem(
+		dto.ID,
+		dto.EncryptedData,
+		contract.UserSecretMeta(dto.EncryptedMeta),
+		dto.Type,
+	)
 }

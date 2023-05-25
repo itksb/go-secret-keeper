@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/itksb/go-secret-keeper/internal/client/auth"
+	"github.com/itksb/go-secret-keeper/internal/client/cipher"
 	"github.com/itksb/go-secret-keeper/internal/client/command"
 	"github.com/itksb/go-secret-keeper/internal/client/gui/term"
+	"github.com/itksb/go-secret-keeper/internal/client/keeper"
 	"github.com/itksb/go-secret-keeper/internal/client/session"
 	"github.com/itksb/go-secret-keeper/pkg/contract"
 	"go.uber.org/zap"
@@ -54,11 +56,19 @@ func (c *ClientApp) Run() error {
 
 	authService := auth.NewClientAuthService()
 
+	cryptoService := cipher.NewCryptoService(func() ([]byte, error) {
+		return []byte(c.cfg.CryptoKey), nil
+	})
+
+	keeperApi := keeper.NewAPIKeeper(cryptoService, c.l)
+	keeperService := keeper.NewClientKeeper(keeperApi, c.l)
+
 	gui := term.NewTerminalService(
 		c.l,
 		guiSession,
 		command.LoginCmdAbstractFabric(authService, c.l),
 		command.RegisterCmdAbstractFabric(authService, c.l),
+		command.ListSecretsCmdAbstractFabric(c.l, keeperService),
 	)
 
 	return gui.Start()
