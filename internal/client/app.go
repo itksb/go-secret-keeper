@@ -69,6 +69,8 @@ func (c *ClientApp) Run() error {
 		command.LoginCmdAbstractFabric(authService, c.l),
 		command.RegisterCmdAbstractFabric(authService, c.l),
 		command.ListSecretsCmdAbstractFabric(c.l, keeperService),
+		command.DeleteSecretCommandFactory(c.l, keeperService),
+		command.SaveSecretCommandFactory(c.l, keeperService),
 	)
 
 	return gui.Start()

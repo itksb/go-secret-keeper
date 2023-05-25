@@ -31,6 +31,23 @@ func NewDeleteSecretCommand(
 	}
 }
 
+// DeleteSecretCommandFactory - create new delete secret command factory
+// using currying technic for dependency injection
+func DeleteSecretCommandFactory(
+	l contract.IApplicationLogger,
+	keeper contract.IKeeper,
+) func(
+	userID string,
+	secretID string,
+) *DeleteSecretCommand {
+	return func(
+		userID string,
+		secretID string,
+	) *DeleteSecretCommand {
+		return NewDeleteSecretCommand(l, keeper, userID, secretID)
+	}
+}
+
 // Execute - execute command
 func (c *DeleteSecretCommand) Execute() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

@@ -18,17 +18,22 @@ var completer = readline.NewPrefixCompleter(
 	readline.PcItem("login"),
 	readline.PcItem("register"),
 	readline.PcItem("list"),
+	readline.PcItem("delete"),
+	readline.PcItem("savetext"),
+	readline.PcItem("saveloginpass"),
 	readline.PcItem("help"),
 	readline.PcItem("exit"),
 )
 
 // TerminalService - terminal service
 type TerminalService struct {
-	l                    contract.IApplicationLogger
-	session              session.ISession
-	loginCmdFabric       loginCmdFabric
-	registerCmdFabric    registerCmdFabric
-	listSecretsCmdFabric listSecretsCmdFabric
+	l                      contract.IApplicationLogger
+	session                session.ISession
+	loginCmdFabric         loginCmdFabric
+	registerCmdFabric      registerCmdFabric
+	listSecretsCmdFabric   listSecretsCmdFabric
+	deleteSecretCmdFabric  deleteSecretCmdFabric
+	saveLoginPassCmdFabric saveLoginPassCmdFabric
 }
 
 type loginCmdFabric func(
@@ -48,6 +53,20 @@ type listSecretsCmdFabric func(
 	processFunc command.SecretsProcessorFunc,
 ) *command.ListSecretsCommand
 
+type deleteSecretCmdFabric func(
+	userID string,
+	secretID string,
+) *command.DeleteSecretCommand
+
+type saveLoginPassCmdFabric func(
+	userID string,
+	secretID string,
+	login string,
+	password string,
+	meta string,
+	secretItemProcessorFunc command.SecretItemProcessorFunc,
+) *command.SaveLoginPassCommand
+
 // NewTerminalService - create new terminal service
 func NewTerminalService(
 	l contract.IApplicationLogger,
@@ -55,13 +74,17 @@ func NewTerminalService(
 	loginCmdFabric loginCmdFabric,
 	registerCmdFabric registerCmdFabric,
 	listSecretsCmdFabric listSecretsCmdFabric,
+	deleteSecretCmdFabric deleteSecretCmdFabric,
+	saveLoginPassCmdFabric saveLoginPassCmdFabric,
 ) *TerminalService {
 	return &TerminalService{
-		l:                    l,
-		session:              session,
-		loginCmdFabric:       loginCmdFabric,
-		registerCmdFabric:    registerCmdFabric,
-		listSecretsCmdFabric: listSecretsCmdFabric,
+		l:                      l,
+		session:                session,
+		loginCmdFabric:         loginCmdFabric,
+		registerCmdFabric:      registerCmdFabric,
+		listSecretsCmdFabric:   listSecretsCmdFabric,
+		deleteSecretCmdFabric:  deleteSecretCmdFabric,
+		saveLoginPassCmdFabric: saveLoginPassCmdFabric,
 	}
 }
 
@@ -145,6 +168,7 @@ func (s *TerminalService) Start() error {
 			login, cmdErr = rline.Readline()
 			if err != nil {
 				rline.Write([]byte(fmt.Sprintf("error while reading login: %s \r\n", cmdErr.Error())))
+				continue
 			}
 			rline.SetPrompt(nemoPrompt)
 			rline.Write([]byte(fmt.Sprintf("your login: %s \r\n", login)))
@@ -153,6 +177,7 @@ func (s *TerminalService) Start() error {
 			pswd, cmdErr = rline.ReadPasswordWithConfig(setPasswordCfg)
 			if cmdErr != nil {
 				rline.Write([]byte(fmt.Sprintf("error while reading password: %s \r\n", cmdErr.Error())))
+				continue
 			}
 			loginCmd := s.loginCmdFabric(s.session, login, string(pswd))
 			cmdErr = loginCmd.Execute()
@@ -167,6 +192,7 @@ func (s *TerminalService) Start() error {
 			login, cmdErr = rline.Readline()
 			if err != nil {
 				rline.Write([]byte(fmt.Sprintf("error while reading login: %s \r\n", cmdErr.Error())))
+				continue
 			}
 			rline.SetPrompt(nemoPrompt)
 			rline.Write([]byte(fmt.Sprintf("your login: %s \r\n", login)))
@@ -175,6 +201,7 @@ func (s *TerminalService) Start() error {
 			pswd, cmdErr = rline.ReadPasswordWithConfig(setPasswordCfg)
 			if cmdErr != nil {
 				rline.Write([]byte(fmt.Sprintf("error while executing register command: %s \r\n", cmdErr.Error())))
+				continue
 			}
 			registerCmd := s.registerCmdFabric(s.session, login, string(pswd))
 			cmdErr = registerCmd.Execute()
@@ -206,6 +233,97 @@ func (s *TerminalService) Start() error {
 			cmdErr = listSecretsCmd.Execute()
 			if cmdErr != nil {
 				rline.Write([]byte(fmt.Sprintf("error while executing list command: %s \r\n", cmdErr.Error())))
+			}
+		case line == "delete":
+			cmdErr = nil
+			acc := s.GetAccount()
+			if acc == nil {
+				continue
+			}
+			rline.SetPrompt(createLoginPrompt("enter secret id to delete"))
+			var secretID string
+			secretID, cmdErr = rline.Readline()
+			if cmdErr != nil {
+				rline.Write([]byte(fmt.Sprintf("error while reading secret id: %s \r\n", cmdErr.Error())))
+				continue
+			}
+			rline.SetPrompt(createLoginPrompt(acc.GetLogin()))
+			deleteCmd := s.deleteSecretCmdFabric(acc.GetID(), secretID)
+			cmdErr = deleteCmd.Execute()
+			if cmdErr != nil {
+				rline.Write([]byte(fmt.Sprintf("error while executing delete command: %s \r\n", cmdErr.Error())))
+			}
+		case line == "savetext":
+			cmdErr = nil
+			acc := s.GetAccount()
+			if acc == nil {
+				continue
+			}
+			rline.SetPrompt(createLoginPrompt("enter secret id to update or leave empty to create"))
+
+		case line == "saveloginpass":
+			cmdErr = nil
+			acc := s.GetAccount()
+			if acc == nil {
+				continue
+
+			}
+			rline.SetPrompt(createLoginPrompt("enter secret id to update or leave empty to create"))
+			var secretID string
+			secretID, cmdErr = rline.Readline()
+			if cmdErr != nil {
+				rline.Write([]byte(fmt.Sprintf("error while reading secret id: %s \r\n", cmdErr.Error())))
+				continue
+			}
+
+			rline.SetPrompt(createLoginPrompt("enter login to save"))
+			var login string
+			login, cmdErr = rline.Readline()
+			if err != nil {
+				rline.Write([]byte(fmt.Sprintf("error while reading login: %s \r\n", cmdErr.Error())))
+				continue
+			}
+			rline.SetPrompt(acc.GetLogin())
+			rline.Write([]byte(fmt.Sprintf("your login: %s \r\n", login)))
+
+			cmdErr = nil
+			var pswd []byte
+			pswd, cmdErr = rline.ReadPasswordWithConfig(setPasswordCfg)
+			if cmdErr != nil {
+				rline.Write([]byte(fmt.Sprintf("error while reading password: %s \r\n", cmdErr.Error())))
+				continue
+			}
+
+			rline.SetPrompt(createLoginPrompt("enter meta to save or update"))
+			var meta string
+			login, cmdErr = rline.Readline()
+			if err != nil {
+				rline.Write([]byte(fmt.Sprintf("error while reading meta: %s \r\n", cmdErr.Error())))
+				continue
+			}
+			rline.SetPrompt(acc.GetLogin())
+			rline.Write([]byte(fmt.Sprintf("your meta: %s \r\n", meta)))
+
+			saveCmd := s.saveLoginPassCmdFabric(
+				acc.GetID(),
+				secretID,
+				login,
+				string(pswd),
+				meta,
+				func(item contract.IUserSecretItem) error {
+					if string(item.GetID()) != secretID {
+						rline.Write([]byte(fmt.Sprintf("secret was created: %s \r\n", item.GetID())))
+						return nil
+					} else {
+						rline.Write([]byte(fmt.Sprintf("secret was updated: %s \r\n", item.GetID())))
+						return nil
+					}
+				},
+			)
+
+			cmdErr = saveCmd.Execute()
+			if cmdErr != nil {
+				rline.Write([]byte(fmt.Sprintf("error while executing save command: %s \r\n", cmdErr.Error())))
 			}
 
 		case line == "help":
