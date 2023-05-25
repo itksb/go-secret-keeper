@@ -3,6 +3,10 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/itksb/go-secret-keeper/internal/client/auth"
+	"github.com/itksb/go-secret-keeper/internal/client/command"
+	"github.com/itksb/go-secret-keeper/internal/client/gui/term"
+	"github.com/itksb/go-secret-keeper/internal/client/session"
 	"github.com/itksb/go-secret-keeper/pkg/contract"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -46,8 +50,17 @@ func NewClientApp(cfg Config) *ClientApp {
 
 // Run - run client
 func (c *ClientApp) Run() error {
-	time.Sleep(1 * time.Second)
-	return nil
+	guiSession := session.NewAppSession()
+
+	authService := auth.NewClientAuthService()
+
+	gui := term.NewTerminalService(
+		c.l,
+		guiSession,
+		command.LoginCmdAbstractFabric(authService, c.l),
+	)
+
+	return gui.Start()
 }
 
 // Stop - stop client

@@ -31,9 +31,6 @@ func main() {
 	}
 
 	application := server.NewServerApp(*cfg, migrate.AppMigratorFunc(migrate.Migrate))
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	doneCh := make(chan struct{})
 	go func() {

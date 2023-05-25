@@ -1,6 +1,10 @@
 package session
 
-import "sync"
+import (
+	"errors"
+	"fmt"
+	"sync"
+)
 
 var _ ISession = &AppSession{}
 
@@ -22,7 +26,11 @@ func NewAppSession() *AppSession {
 func (a *AppSession) GetValue(key string) (interface{}, error) {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
-	return a.data[key], nil
+	v, ok := a.data[key]
+	if !ok {
+		return nil, errors.New(fmt.Sprintf("key not found: %s", key))
+	}
+	return v, nil
 }
 
 // SetValue - set value to session

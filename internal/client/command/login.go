@@ -36,6 +36,25 @@ func NewLoginCommand(
 	}
 }
 
+// LoginCmdAbstractFabric - abstract fabric for login command
+// using currying technic for dependency injection
+func LoginCmdAbstractFabric(
+	auth contract.IAuthService,
+	l contract.IApplicationLogger,
+) func(
+	session session.ISession,
+	login string,
+	password string,
+) *LoginCommand {
+	return func(
+		session session.ISession,
+		login string,
+		password string,
+	) *LoginCommand {
+		return NewLoginCommand(auth, l, session, login, password)
+	}
+}
+
 // Execute - execute command
 func (c *LoginCommand) Execute() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

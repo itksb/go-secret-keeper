@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/itksb/go-secret-keeper/internal/client"
+	"log"
+)
 
 var (
 	gitBuildCommit = "N/A"
@@ -15,4 +19,15 @@ func main() {
 		buildDateTime,
 		gitBuildTag,
 	)
+
+	cfg := client.NewConfig()
+	cfg.UseFlags()
+	_, err := cfg.UseJsonConfigFile()
+	if err != nil {
+		log.Fatalf("error while using config file: %s", err.Error())
+		return
+	}
+
+	application := client.NewClientApp(*cfg)
+	application.Run()
 }
