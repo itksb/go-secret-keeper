@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 var (
-	gitBuildCommit string = "N/A"
+	gitBuildCommit = "N/A"
 	gitBuildTag    string = "N/A"
 	buildDateTime  string = "N/A"
 )
