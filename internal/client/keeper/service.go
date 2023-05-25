@@ -58,6 +58,7 @@ func (c *ClientKeeper) GetAllSecrets(
 	return items, nil
 }
 
+// Delete - delete secret for user
 func (c *ClientKeeper) Delete(
 	ctx context.Context,
 	userID contract.UserID,

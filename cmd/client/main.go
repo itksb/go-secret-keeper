@@ -4,8 +4,8 @@ import "fmt"
 
 var (
 	gitBuildCommit = "N/A"
-	gitBuildTag    string = "N/A"
-	buildDateTime  string = "N/A"
+	gitBuildTag    = "N/A"
+	buildDateTime  = "N/A"
 )
 
 func main() {

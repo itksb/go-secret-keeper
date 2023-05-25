@@ -19,6 +19,7 @@ type ClientApp struct {
 }
 
 // NewClientApp - constructor
+// composition root
 func NewClientApp(cfg Config) *ClientApp {
 	var logger *zap.Logger
 	var err error
